@@ -4,8 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"time"
-
-	"github.com/anoop142/cowin-cli/cowin"
+	"github.com/smartass08/cowin-cli/cowin"
 )
 
 const (
