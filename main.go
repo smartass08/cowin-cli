@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"time"
 	"github.com/smartass08/cowin-cli/cowin"
+	"time"
 )
 
 const (

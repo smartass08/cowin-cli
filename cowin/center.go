@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"strings"
 )
 
 type CentreData struct {
@@ -78,15 +79,18 @@ func PrintCenters(options Options) {
 	center := getCenterBookable(options)
 	if len(center) > 0 {
 		for _, v := range center {
-			if options.Info {
-				fmt.Printf("%v  %v  %v  %v %v %v Dose-%v\n", v.Name, v.Freetype, v.Date, v.AvailableCapacity, v.Vaccine, v.MinAgeLimit, v.DoseType)
-			} else {
-				fmt.Printf("%s ", v.Name)
-				if v.Freetype != "Free" {
-					fmt.Print("Paid")
+			if strings.Contains(options.Centers, v.Name){
+				if options.Info {
+					fmt.Printf("%v  %v  %v  %v %v %v Dose-%v\n", v.Name, v.Freetype, v.Date, v.AvailableCapacity, v.Vaccine, v.MinAgeLimit, v.DoseType)
+				} else {
+					fmt.Printf("%s ", v.Name)
+					if v.Freetype != "Free" {
+						fmt.Print("Paid")
+					}
+					fmt.Println()
 				}
-				fmt.Println()
 			}
+
 
 		}
 	} else {
