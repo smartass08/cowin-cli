@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	version = "1.5.6"
+	version = "1.6.1"
 	author  = "Anoop S"
 )
 
@@ -40,6 +40,7 @@ func main() {
 	aotp := flag.Bool("aotp", false, "auto capture otp for termux")
 	ntok := flag.Bool("ntok", false, "don't reuse token")
 	token := flag.String("token", "token.txt", "file to write token")
+	freeType := flag.String("t", "", "free type")
 	slot := flag.String("slot", "", "slot time")
 	version := flag.Bool("version", false, "version")
 	help := flag.Bool("help", false, "help")
@@ -49,9 +50,9 @@ func main() {
 		printAbout()
 		helpMsg := "Usage :\n"
 		helpMsg += "\nList :"
-		helpMsg += "\n  cowin-cli -s state -d district [-v vaccine] [-m age] [-i] [-b] [-c dd-mm-yyyy][-dose dose]\n\n"
+		helpMsg += "\n  cowin-cli -s state -d district [-v vaccine] [-m age] [-i] [-b] [-c dd-mm-yyyy][-dose dose] [-t freeType]\n\n"
 		helpMsg += "Book Vaccine:"
-		helpMsg += "\n  cowin-cli -sc -s state -d district [-no mobileNumber] [-v vaccine] [-m age] [-names name1,name2] [-centers center1,cetner2 ] [-slot slotTime] [-aotp] [-ntok] [-token tokenFile] [-dose dose]\n\n"
+		helpMsg += "\n  cowin-cli -sc -s state -d district [-no mobileNumber] [-v vaccine] [-m age] [-names name1,name2] [-centers center1,cetner2 ] [-slot slotTime] [-aotp] [-ntok] [-token tokenFile] [-dose dose] [-t freeType]\n\n"
 		helpMsg += "Generate Token:"
 		helpMsg += "\n	cowin-cli -gen [-no mobileNumber] [-token tokenFile]  \n\n"
 		fmt.Print(helpMsg)
@@ -81,6 +82,7 @@ func main() {
 			Ntok:         *ntok,
 			Dose:         *dose,
 			TokenFile:    *token,
+			FreeType:     *freeType,
 		}
 		if *schedule {
 			cowin.ScheduleVaccine(options)
