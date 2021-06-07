@@ -26,10 +26,19 @@ type CentreData struct {
 	} `json:"centers"`
 }
 
-func (center *CentreData) getCenters(options Options) {
-	auth := false
+func (center *CentreData) getCenters(options Options, bearerToken string) {
+	var (
+		URL  string
+		auth = false
+	)
 
-	u, err := url.Parse(calenderDistrictURL)
+	if options.Protected || options.Schedule {
+		URL = calenderDistrictURL
+		auth = true
+	} else {
+		URL = calendarDistrictPublicURL
+	}
+	u, err := url.Parse(URL)
 
 	if err != nil {
 		log.Fatal(err)
@@ -42,7 +51,7 @@ func (center *CentreData) getCenters(options Options) {
 	q.Add("district_id", districtID)
 
 	u.RawQuery = q.Encode()
-	resp, statusCode := getReqAuth(u.String(), "", auth)
+	resp, statusCode := getReqAuth(u.String(), bearerToken, auth)
 
 	if statusCode != 200 {
 		log.Fatalln(string(resp))
@@ -76,7 +85,18 @@ func checkDoseType(dosType string, specifiedDose int) bool {
 }
 
 func PrintCenters(options Options) {
-	center := getCenterBookable(options)
+	var (
+		bearerToken string
+		ok          bool
+	)
+
+	if options.Protected {
+		bearerToken, ok = loadTokenFromFile(options.TokenFile)
+		if !ok {
+			log.Fatalln(options.TokenFile, "not found!")
+		}
+	}
+	center := getCenterBookable(options, bearerToken)
 	if len(center) > 0 {
 		for _, v := range center {
 			if strings.Contains(options.Centers, v.Name){

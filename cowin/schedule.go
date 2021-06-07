@@ -40,7 +40,6 @@ type ScheduleData struct {
 	beneficariesRefIDs []string
 	dose               int
 	sessionID          string
-	captcha            string
 }
 
 type BadRequest struct {
@@ -201,7 +200,7 @@ func getSpecifiedCenterSessionID(centerBookable []CenterBookable, specifiedCente
 }
 
 // getCenterBookable gets centers that are only avaliable for booking
-func getCenterBookable(options Options) []CenterBookable {
+func getCenterBookable(options Options, bearerToken string) []CenterBookable {
 	var center CentreData
 	var centerBookable []CenterBookable
 
@@ -209,7 +208,7 @@ func getCenterBookable(options Options) []CenterBookable {
 		checkVaccineKnown(options.Vaccine)
 	}
 
-	center.getCenters(options)
+	center.getCenters(options, bearerToken)
 
 	for _, v := range center.Centers {
 		for _, vv := range v.Sessions {
@@ -240,17 +239,14 @@ func getCenterBookable(options Options) []CenterBookable {
 }
 
 // getSessionID gets session ID and generates OTP
-func (scheduleData *ScheduleData) getSessionID(options Options, tokenValid bool) {
+func (scheduleData *ScheduleData) getSessionID(options Options) {
 
 	var opt int
 	var selectedCenter CenterBookable
-	centerBookable := getCenterBookable(options)
+	centerBookable := getCenterBookable(options, scheduleData.bearerToken)
 
 	if len(centerBookable) > 0 {
 		// generate OTP only if there is bookable centers && invalid token
-		if !tokenValid {
-			scheduleData.txnId = genOTP(options.MobileNumber)
-		}
 
 		if options.Centers != "" {
 			selectedCenter = getSpecifiedCenterSessionID(centerBookable, options.Centers)
@@ -285,7 +281,6 @@ func (scheduleData ScheduleData) scheduleVaccineNow() ([]byte, int) {
 		"session_id":    scheduleData.sessionID,
 		"slot":          scheduleData.slot,
 		"beneficiaries": scheduleData.beneficariesRefIDs,
-		"captcha":       scheduleData.captcha,
 	}
 
 	jsonBytes, _ := json.Marshal(postData)
@@ -319,10 +314,10 @@ func ScheduleVaccine(options Options) {
 
 	}
 
-	scheduleData.getSessionID(options, tokenValid)
-
 	if !tokenValid {
-		if runtime.GOOS == "android" && options.Aotp {
+		scheduleData.txnId = genOTP(options.MobileNumber)
+
+		if runtime.GOOS == "android" && options.Aotp && checkTermuxAPI() {
 			for {
 				fmt.Println("Waiting for OTP..")
 				OTP, recievedTime = catchOTP()
@@ -356,36 +351,28 @@ func ScheduleVaccine(options Options) {
 		}
 	}
 
+	scheduleData.getSessionID(options)
+
 	scheduleData.getBeneficariesID(beneficaries, options.Names)
 
-	for i := 0; i < 5; i++ {
+	resp, statusCode := scheduleData.scheduleVaccineNow()
 
-		scheduleData.captcha = getCatpchaCode(scheduleData.bearerToken)
+	switch statusCode {
+	case 200:
+		fmt.Println("Appointment scheduled successfully!")
+		os.Exit(0)
+	case 400:
+		json.Unmarshal(resp, &badRequest)
+		log.Fatalln(badRequest.Error)
 
-		resp, statusCode := scheduleData.scheduleVaccineNow()
-
-		switch statusCode {
-		case 200:
-			fmt.Println("Appointment scheduled successfully!")
-			os.Exit(0)
-		case 400:
-			json.Unmarshal(resp, &badRequest)
-			if badRequest.Error == "Your transaction didn't go through. Please try again later" {
-				log.Println("Captcha failed, trying again..")
-				continue
-			}
-			log.Fatalln(badRequest.Error)
-
-		case 401:
-			log.Fatalln("Unauthenticated Access")
-		case 409:
-			log.Fatalln("This vaccination center is completely booked for the selected date")
-		case 500:
-			log.Fatalln("Internal Server error")
-		default:
-			log.Fatalln("Error ", statusCode)
-
-		}
+	case 401:
+		log.Fatalln("Unauthenticated Access")
+	case 409:
+		log.Fatalln("This vaccination center is completely booked for the selected date")
+	case 500:
+		log.Fatalln("Internal Server error")
+	default:
+		log.Fatalln("Error ", statusCode)
 	}
 
 }

@@ -74,7 +74,7 @@ There are two main modes
 ### **List vaccine centers**
 
 ```
-cowin-cli -s state -d district [-v vaccine1,vaccine2] [-m age] [-i] [-b]  [-c dd-mm-yyyy] [-dose dose] [-t freeType]
+cowin-cli -s state -d district [-v vaccine1,vaccine2] [-m age] [-i] [-b]  [-c dd-mm-yyyy] [-dose dose] [-t freeType] [-ntok] [-p]
 ```
 ### Example 1
 ```console
@@ -95,6 +95,7 @@ Mannanchery PHC  Free  18-05-2021  7 COVISHIELD 45 Dose-1
 
 The `-i` option displays all extra info like date, vaccine name, age...
 `-b'` prints only bookable centers.
+`-p` make use the protected URL to list.
 
 
 
@@ -160,22 +161,24 @@ It's possible to detect OTP message and get OTP in Termux without user input. us
 
 You need to first setup termux to read sms.
 
-  1.Install Termux API apk from Fdroid
+  1.Install Termux API apk from Fdroid [here](https://f-droid.org/en/packages/com.termux.api/)
 
   2.Install termux-api package 
+  
+  3.Pass flag **-aotp**
 
   ```bash
   # Install termux-api package
   $ pkg i termux-api
   # To give permisiion
-  $ termux-list-sms
+  $ termux-sms-list
   # Example
   $ cowin-cli -s kerala -d alappuzha -sc -no 9123456789 -aotp
   ```
 
  ### Generating Token
 
- Tokens are always written to "token.txt" after successfully validating OTP while booking to re-use later.
+ Tokens are always written to "token.txt" after successfully validating OTP to use it for listing or booking.
 
 You can generate token manually using the token generation mode.
 
@@ -217,6 +220,11 @@ Written to token.txt
             dose type
   -t string
             free type
+  -ntok
+           don't reuse token
+  -p
+    	use protected URL to list
+
 ```
 
 #### Book Vaccine:
@@ -261,8 +269,7 @@ Written to token.txt
 ```
 
 ## Known issues
-* Random Unauthenticated access error for no reasons.
-
+* API limits request per ip mysteriously.
 ## License
 
 GPL 3.0

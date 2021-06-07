@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	version = "1.6.1"
+	version = "1.7.3"
 	author  = "Anoop S"
 )
 
@@ -42,6 +42,7 @@ func main() {
 	token := flag.String("token", "token.txt", "file to write token")
 	freeType := flag.String("t", "", "free type")
 	slot := flag.String("slot", "", "slot time")
+	protected := flag.Bool("p", false, "use protected URL to list")
 	version := flag.Bool("version", false, "version")
 	help := flag.Bool("help", false, "help")
 
@@ -50,14 +51,12 @@ func main() {
 		printAbout()
 		helpMsg := "Usage :\n"
 		helpMsg += "\nList :"
-		helpMsg += "\n  cowin-cli -s state -d district [-v vaccine] [-m age] [-i] [-b] [-c dd-mm-yyyy][-dose dose] [-t freeType]\n\n"
+		helpMsg += "\n  cowin-cli -s state -d district [-v vaccine] [-m age] [-i] [-b] [-c dd-mm-yyyy][-dose dose] [-t freeType] [-ntok] [-p]\n\n"
 		helpMsg += "Book Vaccine:"
 		helpMsg += "\n  cowin-cli -sc -s state -d district [-no mobileNumber] [-v vaccine] [-m age] [-names name1,name2] [-centers center1,cetner2 ] [-slot slotTime] [-aotp] [-ntok] [-token tokenFile] [-dose dose] [-t freeType]\n\n"
 		helpMsg += "Generate Token:"
 		helpMsg += "\n	cowin-cli -gen [-no mobileNumber] [-token tokenFile]  \n\n"
 		fmt.Print(helpMsg)
-		fmt.Println("Options :")
-		flag.PrintDefaults()
 	}
 	if *state != "" && *district != "" {
 		// set date if not specified
@@ -83,6 +82,7 @@ func main() {
 			Dose:         *dose,
 			TokenFile:    *token,
 			FreeType:     *freeType,
+			Protected:    *protected,
 		}
 		if *schedule {
 			cowin.ScheduleVaccine(options)
@@ -96,6 +96,8 @@ func main() {
 		printAbout()
 	} else if *help {
 		flag.Usage()
+		fmt.Println("Options :")
+		flag.PrintDefaults()
 	} else {
 		flag.Usage()
 	}

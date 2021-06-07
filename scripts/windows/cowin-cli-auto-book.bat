@@ -8,7 +8,7 @@ set COWIN-CLI=.\cowin-cli.exe
 :: EDIT VAULES 
 
 :: time interval to check in seconds ,DO NOT  SET IT LESS THAN 10S
-set /A INTERVAL=11
+set /A INTERVAL=15
 :: Age limit of centers
 set /A AGE=45
 :: State name
@@ -46,15 +46,14 @@ goto loop
 :: Booking function
 :book
 %COWIN-CLI% -s %STATE% -d %DISTRICT% -sc -no %NO% -names %NAMES% -centers %CENTERS% -v %VACCINE% -dose %DOSE% -c %DATE% -t %TYPE%
-pause
-exit
+goto:eof
 
 :: Listing function
 :list
 IF [%CENTERS_MATCH%]==[""] (
    %COWIN-CLI% -s %STATE% -d %DISTRICT% -m %AGE% -b -v %VACCINE% -dose %DOSE% -c %DATE% -t %TYPE%
  ) ELSE ( 
-    %COWIN-CLI% -s %STATE% -d %DISTRICT% -m %AGE% -b -v %VACCINE% -dose %DOSE% -c %DATE% -t %TYPE%  | findstr /I %CENTERS_MATCH%
+    %COWIN-CLI% -s %STATE% -d %DISTRICT% -m %AGE% -b -v %VACCINE% -dose %DOSE% -c %DATE% -t %TYPE% | findstr /I %CENTERS_MATCH%
  )
 goto:eof
 
