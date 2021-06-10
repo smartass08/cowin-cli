@@ -1,6 +1,6 @@
 
 ## Command line  tool to List and Book Vaccine
-cowin-cli is a simple cli tool to book vaccines and list centers using the COWIN API. It also supports **auto captcha completion** .
+cowin-cli is a simple cli tool to book vaccines and list centers using the COWIN API.
 
 
 >Note: By default cowin-cli will not run continoulsy and monitor slot changes, use bash / batch scripts for that purpose, which can be found [here](#scripts).
@@ -8,13 +8,13 @@ cowin-cli is a simple cli tool to book vaccines and list centers using the COWIN
 
 ## Features
 * **Zero dependency** : No neeed to install anything, download precompiled binary and run.
-* **Automatic captcha support**: credits to https://github.com/ayushchd
 * **Scripting support** : scripts are available for all platforms providing additional features.
 * **Command chaining** : outputs text stream with proper exit code.
 * **Reuse OTP** : session token is written to a text file to reuse it later.
-* **Advanced Filters**: built-in filter by age, dose, vaccines..etc.
+* **Advanced Filters**: built-in filter by age, dose, vaccines, min slot, free type.. etc.
 * **Cross platform** : Windows, Linux, macOS, Termux.
-* **Automatic OTP support for Termux** 
+* **Automatic OTP support for Termux**
+* **Bypass Caching, gets latest data.**
 
 https://user-images.githubusercontent.com/40671157/119601114-1b2dce00-be06-11eb-923b-3889a24c6ba2.mp4
 
@@ -74,7 +74,7 @@ There are two main modes
 ### **List vaccine centers**
 
 ```
-cowin-cli -s state -d district [-v vaccine1,vaccine2] [-m age] [-i] [-b]  [-c dd-mm-yyyy] [-dose dose] [-t freeType] [-ntok] [-p]
+cowin-cli -s state -d district [-v vaccine1,vaccine2] [-m age] [-i] [-b]  [-c dd-mm-yyyy] [-dose dose] [-t freeType] [-ms minimumSlot] [-p] [-ncb]
 ```
 ### Example 1
 ```console
@@ -86,7 +86,7 @@ Kayamkulam THQH
 
 ### Example 2
 ```console
-$ cowin-cli -s kerala -d alappuzha -i -m 45 -v "covaxin,covishield" -b -dose 1 -t free
+$ cowin-cli -s kerala -d alappuzha -i -m 45 -v "covaxin,covishield" -b -dose 1 -t free -ms 2
 
 Kalavoor PHC  Free  18-05-2021  11 COVAXIN 45 Dose-1
 Vandanam MCH  Free  18-05-2021  4 COVISHIELD 45 Dose-1
@@ -96,6 +96,7 @@ Mannanchery PHC  Free  18-05-2021  7 COVISHIELD 45 Dose-1
 The `-i` option displays all extra info like date, vaccine name, age...
 `-b'` prints only bookable centers.
 `-p` make use the protected URL to list.
+`-ms` sets minimum slot , here show centers having min 2 slots available for booking.
 
 
 
@@ -104,7 +105,7 @@ The `-i` option displays all extra info like date, vaccine name, age...
 You can specify mobile number, centers to auto book, age, name etc. 
 If not, you will be prompted to enter it appropriately.
 ```
-$  cowin-cli -sc -s state -d district [-no mobileNumber] [-v vaccine1,vaccine2] [-names name1,name2] [-centers center1,cetner2 ] [-slot slotTime] [-ntok]  [-dose dose] [-t freeType]
+$  cowin-cli -sc -s state -d district [-no mobileNumber] [-v vaccine1,vaccine2] [-names name1,name2] [-centers center1,cetner2 ] [-slot slotTime] [-ntok]  [-dose dose] [-t freeType] [-ms minimumSlot] [-ncb]
 ```
 ### Example 1
 ```console
@@ -140,7 +141,7 @@ you can specify most of the details for booking the vaccine
 
 ### Example 2
 ```console
-$  cowin-cli -sc -s kerala -d alappuzha -no 9123456780 -names "John doe, Jane doe" -centers "Aroor FHC,Ala PHC" -v "covaxin,sputnik v" -dose 2 -t free
+$  cowin-cli -sc -s kerala -d alappuzha -no 9123456780 -names "John doe, Jane doe" -centers "Aroor FHC,Ala PHC" -v "covaxin,sputnik v" -dose 2 -t free -ms 2
 
 Center : Aroor FHC COVAXIN Dose-2
 Enter OTP :  xxxxx
@@ -220,10 +221,12 @@ Written to token.txt
             dose type
   -t string
             free type
-  -ntok
-           don't reuse token
   -p
     	use protected URL to list
+  -ms int
+    	minimum slots (default 1)
+  -ncb
+    	don't use cache bypass
 
 ```
 
@@ -249,11 +252,15 @@ Written to token.txt
     -dose int
             dose type
     -token string
-            file to write token (default "token.txt")
+            file to read/write token (default "token.txt")
     -t string
             free type
     -aotp
             auto capture otp for termux
+  -ms int
+    	minimum slots (default 1)
+  -ncb
+    	don't use cache bypass
 
 ```
 
@@ -263,7 +270,7 @@ Written to token.txt
      -gen
         invoke token generation mode
     -token string
-            file to write token (default "token.txt")
+            file to read/write token (default "token.txt")
      -no int       
             mobile number
 ```

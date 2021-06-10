@@ -5,56 +5,77 @@
 
 set COWIN-CLI=.\cowin-cli.exe 
 
-:: EDIT VAULES 
+:: set this to 1 to use protected API
+set /A PROTECTED_API=0
 
+
+::------------------------------------------------
+:: NEED EDIT
+::------------------------------------------------
 :: time interval to check in seconds ,DO NOT  SET IT LESS THAN 10S
 set /A INTERVAL=15
+
 :: Age limit of centers
 set /A AGE=45
+
 :: State name
 set STATE="tamil nadu"
+
 :: District name
 set DISTRICT="chennai"
+
 :: beneficiaries names separated by ','
 set NAMES=""
+
 :: Mobile number
 set NO=""
-:: centers name pattern seperated by space, name is not required to be accurate, eg: ala kayam 
-set CENTERS_MATCH=""
+
+:: dose, 0 means both doses 1 & 2
+set /A DOSE=0
+::------------------------------------------------
+
+
+
+::------------------------------------------------
+:: Optionaly Edit
+::------------------------------------------------
+
 :: centers name to auto select, should be accurate, seperated by ',' . 
 set CENTERS=""
+
 :: vaccines seperated by ','
 set VACCINE=""
-:: dose, 0 means all
-set /A DOSE=0
-:: date, no need to edit this by default, dd-mm-yyyy format
+
+:: no need to edit this, auto defaults to tomorrow's date
 set DATE=""
+
 :: center type, free or paid, empty means all
 set TYPE=""
+
+:: minimum slots 
+set /A MIN_SLOT=1
+
 ::END OF EDITABLE VALUES
+::------------------------------------------------
 
 
 
 :: Main looping  function
 :loop
 echo looking for centers...
-call:list && call:book
+IF NOT %PROTECTED_API%==0 (call:book) ELSE (call:list && call:book)
 timeout /t %INTERVAL% >nul
 goto loop
 
 
 :: Booking function
 :book
-%COWIN-CLI% -s %STATE% -d %DISTRICT% -sc -no %NO% -names %NAMES% -centers %CENTERS% -v %VACCINE% -dose %DOSE% -c %DATE% -t %TYPE%
+%COWIN-CLI% -s %STATE% -d %DISTRICT% -sc -no %NO% -names %NAMES% -centers %CENTERS% -v %VACCINE% -dose %DOSE% -c %DATE% -t %TYPE% -ms %MIN_SLOT%
 goto:eof
 
 :: Listing function
 :list
-IF [%CENTERS_MATCH%]==[""] (
-   %COWIN-CLI% -s %STATE% -d %DISTRICT% -m %AGE% -b -v %VACCINE% -dose %DOSE% -c %DATE% -t %TYPE%
- ) ELSE ( 
-    %COWIN-CLI% -s %STATE% -d %DISTRICT% -m %AGE% -b -v %VACCINE% -dose %DOSE% -c %DATE% -t %TYPE% | findstr /I %CENTERS_MATCH%
- )
+%COWIN-CLI% -s %STATE% -d %DISTRICT% -m %AGE% -b -v %VACCINE% -dose %DOSE% -c %DATE% -t %TYPE% -ms %MIN_SLOT%
 goto:eof
 
 

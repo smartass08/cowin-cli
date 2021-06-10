@@ -1,49 +1,90 @@
 #!/bin/bash
 # Anoop S
 # shell script to notify and book using cowin-cli
+# Install notify-send for notifications
 
 
 COWIN_CLI="./cowin-cli"
 
-# Interval in seconds
-T=15
-# centers for grep matching
-CENTERS_MATCH='center1|center2|cnter3'
-# centers to auto select
-CENTERS=""
-DISTRICT="district"
-STATE="state"
+# set this to 1 for protected API
+PROTECTED_API=0
+
+#-------------------------------------------
+# NEED EDITING
+#--------------------------------------------
+STATE="tamil nadu"
+
+DISTRICT="chennai"
+
 AGE=45
-NAMES=""
-NO=""
-VACCINE=""
+
+# 0 means both dose 1 and 2
 DOSE=0
+
+# mobile number
+NO=""
+
+# beneficiaries names seperated by ','
+NAMES=""
+#--------------------------------------------
+
+
+#-------------------------------------------
+# OPTIONAL
+#-------------------------------------------
+# Loop Interval in seconds
+T=15
+
+# centers to auto select seperated by ','
+CENTERS=""
+
+# vaccines seperated by ',', default all
+VACCINE=""
+
+# no need to edit this, defaults to tomorrow's date 
 DATE=""
-# center type, free or paid, all by default
+
+# free type, free or paid, default all
 TYPE=""
 
+# minimum slot 
+MIN_SLOT=1
+#-------------------------------------------
+
+
+
+list(){
+	"$COWIN_CLI" -s "$STATE"  -d "$DISTRICT" -m "$AGE" -b \
+	 -v "$VACCINE" -dose "$DOSE" -c "$DATE" -t "$TYPE" -ms "$MIN_SLOT"
+
+}
 
 
 notify(){
 	osascript -e 'display notification "Center found!" with title "COWIN Update" sound name "Submarine"'
 }
 
+
 schedule(){
-	"$COWIN_CLI" -s "$STATE" -d "$DISTRICT" -sc -no "$NO" -m "$AGE" \
-	-names "$NAMES" -centers "$CENTERS" -v "$VACCINE" -dose $DOSE   -c "$DATE" -t "$TYPE"   && exit 0 
+	"$COWIN_CLI" -s "$STATE" -d "$DISTRICT" -sc -no "$NO" -names "$NAMES" -m "$AGE" \
+	-centers "$CENTERS" -v "$VACCINE" -dose "$DOSE"   -c "$DATE" -t "$TYPE" -ms "$MIN_SLOT"
 }
 
 
+
+# main function
 while :
 do
-	echo "looking for centers.."
-
-	"$COWIN_CLI" -s "$STATE"  -d "$DISTRICT" -m "$AGE" -b -v "$VACCINE" -dose $DOSE -c "$DATE" -t "$TYPE"
-
-	if (( $? == 0  )) 
+	if [[ $PROTECTED_API -ne 0 ]]
 	then
-		notify
 		schedule
+	else
+		echo "looking for centers.."
+		list
+		if (( $? == 0 ));then
+			notify
+			schedule && exit
+		fi
 	fi
 
 	sleep $T
